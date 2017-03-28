@@ -1,0 +1,7 @@
+main=false
+gui=false
+container-name = tdtp-sudoku
+local-port=2000
+port=2000
+#host = 172.22.2.1
+#local-port=1099
