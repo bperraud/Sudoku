@@ -9,7 +9,8 @@ import jade.lang.acl.MessageTemplate;
 
 public class EnvironmentAgent extends Agent {
 
-    private ArrayList<Cell> sudokuGrid = new ArrayList<>();
+    private SudokuGrid sudokuGrid = new SudokuGrid();
+    private boolean gridIsInitialized = false;
 
     class handleRequestsBehaviour extends CyclicBehaviour {
 
@@ -30,7 +31,6 @@ public class EnvironmentAgent extends Agent {
             } else
                 block();
 
-
         }
     }
 
@@ -42,10 +42,10 @@ public class EnvironmentAgent extends Agent {
 
             StringBuilder sb = new StringBuilder();
 
-            for (Cell cell :
-                    sudokuGrid) {
-                sb.append(cell.getContent()).append(" ");
-            }
+//            for (Cell cell :
+//                    sudokuGrid) {
+//                sb.append(cell.getContent()).append(" ");
+//            }
 
             inlineGrid = sb.toString();
 
@@ -53,20 +53,6 @@ public class EnvironmentAgent extends Agent {
             AID receiver = getAID("Simulator");
             message.addReceiver(receiver);
             send(message);
-        }
-
-        private boolean gridIsCompleted() {
-            boolean isCompleted = true;
-
-            Iterator<Cell> it = sudokuGrid.iterator();
-            while (it.hasNext() && isCompleted) {
-                Cell c = it.next();
-                if (c.getContent() == 0) {
-                    isCompleted = false;
-                }
-            }
-
-            return isCompleted;
         }
 
         @Override
@@ -83,7 +69,7 @@ public class EnvironmentAgent extends Agent {
 //                reply.setContent(message);
                 send(reply);
 
-            } else if (gridIsCompleted()) {
+            } else if (sudokuGrid.isCompleted()) {
 
                 sendCompletedSudokuGrid();
 
@@ -95,25 +81,31 @@ public class EnvironmentAgent extends Agent {
 
     class InitSudokuGridBehaviour extends Behaviour {
 
+        private void initGrid(String inlineSudoku) {
+            Scanner sc = new Scanner(inlineSudoku);
+            int[] values = new int[81];
+            int i = 0;
+
+            while (sc.hasNext()) {
+                values[i++] = Integer.parseInt(sc.next());
+            }
+
+            sudokuGrid.setCells(values);
+            gridIsInitialized = true;
+
+            sudokuGrid.printGrid();
+        }
+
         @Override
         public void action() {
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
             ACLMessage requestMessage = receive(mt);
 
             if (requestMessage != null) {
-                String inlineSudoku = requestMessage.getContent();
 
-                Scanner sc = new Scanner(inlineSudoku);
+                initGrid(requestMessage.getContent());
 
-                while (sc.hasNext()) {
-                    String cell = sc.next();
-                    Cell newcCell = new Cell(sudokuGrid.size() + 1, Integer.parseInt(cell));
-                    sudokuGrid.add(newcCell);
-                }
-
-                sudokuGrid.forEach(cell -> System.out.println(cell.getIndex() + " : " + cell.getContent()));
-                addBehaviour(new handleRequestsBehaviour());
-
+//                addBehaviour(new handleRequestsBehaviour());
             } else
                 block();
 
@@ -121,17 +113,14 @@ public class EnvironmentAgent extends Agent {
 
         @Override
         public boolean done() {
-            return !sudokuGrid.isEmpty();
+            return gridIsInitialized;
         }
     }
 
     protected void setup() {
         System.out.println("Agent created ! Name : " + getLocalName());
 
-        sudokuGrid = new ArrayList<>();
-
         addBehaviour(new InitSudokuGridBehaviour());
-
     }
 
 }

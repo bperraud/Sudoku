@@ -22,16 +22,27 @@ public class SimulatorAgent extends Agent {
     private static final String ANSI_CYAN = "\u001B[36m";
     private static final String ANSI_WHITE = "\u001B[37m";
 
-    private List<String> analyzers = new LinkedList<>();
-    private int SUBSCRIBERS_WANTED = 27;
+    private String[][] analyzers;
+
+    private int NB_TYPES = 3;
+
+    private Integer LINE_TYPE = 0;
+    private Integer COLUMN_TYPE = 1;
+    private Integer SQUARE_TYPE = 2;
+
+    private int[] types;
+
+    private int ANALYZERS_PER_TYPE = 9;
+    private int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * 3;
 
     private String inlineSudoku = "";
-
 
     private class HandleSimulationBehaviour extends SequentialBehaviour {
     }
 
     class waitForSubscriptionBehaviour extends Behaviour {
+
+        private int nb_subscriptions_received = 0;
 
         @Override
         public void action() {
@@ -41,24 +52,74 @@ public class SimulatorAgent extends Agent {
             if (requestMessage != null) {
                 System.out.println("subscription received!");
                 String agentName = requestMessage.getContent();
-                analyzers.add(agentName);
-            } else if (analyzers.size() < SUBSCRIBERS_WANTED)
+                analyzers[nb_subscriptions_received / ANALYZERS_PER_TYPE][nb_subscriptions_received % ANALYZERS_PER_TYPE] = agentName;
+                nb_subscriptions_received++;
+            } else if (nb_subscriptions_received < SUBSCRIBERS_WANTED)
                 block();
         }
 
         @Override
         public boolean done() {
-            return analyzers.size() == SUBSCRIBERS_WANTED;
+            return nb_subscriptions_received == SUBSCRIBERS_WANTED;
         }
     }
 
-    protected void setup() {
-        System.out.println("Agent created ! Name : " + getLocalName());
+    class ClockBehaviour extends TickerBehaviour {
 
-        System.out.println(Arrays.toString(getArguments()));
+        private void sendTaskRequest(String agentName, int type, int index) {
 
-        File sudoku = (File) getArguments()[0];
+            ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+            message.setContent(String.valueOf(type * ANALYZERS_PER_TYPE + index));
+            message.setInReplyTo(agentName);
+            AID receiver = getAID("Environment");
+            message.addReceiver(receiver);
+            send(message);
 
+        }
+
+        ClockBehaviour(Agent a, long period) {
+            super(a, period);
+        }
+
+        @Override
+        protected void onTick() {
+
+            for (int type : types) {
+                for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
+                    sendTaskRequest(analyzers[type][i], type, i);
+//                    System.out.println("analyzer " + analyzers[type][i] + " handles " + type + "; i: " + i);
+                }
+            }
+
+//            System.out.println("-----------------------------------");
+        }
+    }
+
+
+    class InitSimulationBehaviour extends OneShotBehaviour {
+
+        private void sendSudokuGrid() {
+            ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+            message.setContent(inlineSudoku);
+            AID receiver = getAID("Environment");
+            message.addReceiver(receiver);
+            send(message);
+        }
+
+        private void initTickerBehaviour() {
+            addBehaviour(new ClockBehaviour(getAgent(), 1000));
+        }
+
+        @Override
+        public void action() {
+
+            sendSudokuGrid();
+            initTickerBehaviour();
+
+        }
+    }
+
+    private void storeInlineSudoku(File sudoku) {
         try {
             Scanner sc = new Scanner(sudoku);
             StringBuilder sb = new StringBuilder();
@@ -73,59 +134,19 @@ public class SimulatorAgent extends Agent {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
 
-        class ClockBehaviour extends TickerBehaviour {
+    protected void setup() {
+        System.out.println("Agent created ! Name : " + getLocalName());
 
-            private void sendTaskRequest(String agentName, int code) {
+        storeInlineSudoku((File) getArguments()[0]);
 
-                ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-                message.setContent(String.valueOf(code));
-                message.setInReplyTo(agentName);
-                AID receiver = getAID("Environment");
-                message.addReceiver(receiver);
-                send(message);
+        analyzers = new String[NB_TYPES][ANALYZERS_PER_TYPE];
 
-            }
-
-            ClockBehaviour(Agent a, long period) {
-                super(a, period);
-            }
-
-            @Override
-            protected void onTick() {
-                int index = 0;
-
-                for (String analyzer :
-                        analyzers) {
-                    sendTaskRequest(analyzer, ++index);
-                }
-
-            }
-        }
-
-
-        class InitSimulationBehaviour extends OneShotBehaviour {
-
-            private void sendSudokuGrid() {
-                ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-                message.setContent(inlineSudoku);
-                AID receiver = getAID("Environment");
-                message.addReceiver(receiver);
-                send(message);
-            }
-
-            private void initTickerBehaviour() {
-                addBehaviour(new ClockBehaviour(getAgent(), 1000));
-            }
-
-            @Override
-            public void action() {
-
-                sendSudokuGrid();
-                initTickerBehaviour();
-
-            }
-        }
+        types = new int[NB_TYPES];
+        types[LINE_TYPE] = LINE_TYPE;
+        types[COLUMN_TYPE] = COLUMN_TYPE;
+        types[SQUARE_TYPE] = SQUARE_TYPE;
 
         SequentialBehaviour seq = new HandleSimulationBehaviour();
         seq.addSubBehaviour(new waitForSubscriptionBehaviour());
