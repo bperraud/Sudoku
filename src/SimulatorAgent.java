@@ -12,27 +12,27 @@ import jade.lang.acl.MessageTemplate;
 
 public class SimulatorAgent extends Agent {
 
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_BLACK = "\u001B[30m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_GREEN = "\u001B[32m";
-    private static final String ANSI_YELLOW = "\u001B[33m";
-    private static final String ANSI_BLUE = "\u001B[34m";
-    private static final String ANSI_PURPLE = "\u001B[35m";
-    private static final String ANSI_CYAN = "\u001B[36m";
-    private static final String ANSI_WHITE = "\u001B[37m";
+    static final String ANSI_RESET = "\u001B[0m";
+    static final String ANSI_BLACK = "\u001B[30m";
+    static final String ANSI_RED = "\u001B[31m";
+    static final String ANSI_GREEN = "\u001B[32m";
+    static final String ANSI_YELLOW = "\u001B[33m";
+    static final String ANSI_BLUE = "\u001B[34m";
+    static final String ANSI_PURPLE = "\u001B[35m";
+    static final String ANSI_CYAN = "\u001B[36m";
+    static final String ANSI_WHITE = "\u001B[37m";
 
     private String[][] analyzers;
 
     private int NB_TYPES = 3;
 
-    private Integer LINE_TYPE = 0;
-    private Integer COLUMN_TYPE = 1;
-    private Integer SQUARE_TYPE = 2;
+    static final int LINE_TYPE = 0;
+    static final int COLUMN_TYPE = 1;
+    static final int SQUARE_TYPE = 2;
 
     private int[] types;
 
-    private int ANALYZERS_PER_TYPE = 9;
+    static int ANALYZERS_PER_TYPE = 9;
     private int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * 3;
 
     private String inlineSudoku = "";
@@ -87,11 +87,12 @@ public class SimulatorAgent extends Agent {
             for (int type : types) {
                 for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
                     sendTaskRequest(analyzers[type][i], type, i);
-//                    System.out.println("analyzer " + analyzers[type][i] + " handles " + type + "; i: " + i);
+                    System.out.println(ANSI_GREEN + "analyzer " + analyzers[type][i] + " handles the " +
+                            (type == LINE_TYPE ? "line" : (type == COLUMN_TYPE ? "column" : "square")) +
+                            " number " + (i + 1) + ANSI_RESET
+                    );
                 }
             }
-
-//            System.out.println("-----------------------------------");
         }
     }
 

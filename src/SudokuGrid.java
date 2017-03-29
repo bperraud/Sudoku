@@ -51,6 +51,10 @@ class SudokuGrid {
         return column;
     }
 
+    Cell[] getCellsFromSquare(int index) {
+        return getCellsSquare(index).getCellsArray();
+    }
+
     private CellsSquare[] getColumnSquares(int index) {
         CellsSquare[] line = new CellsSquare[3];
         for (int i = 0; i < 3; i++) {

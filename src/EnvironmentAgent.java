@@ -14,6 +14,43 @@ public class EnvironmentAgent extends Agent {
 
     class handleRequestsBehaviour extends CyclicBehaviour {
 
+        private void propagateRequest(ACLMessage message, int agentCode) {
+
+            ACLMessage newMessage = new ACLMessage(ACLMessage.REQUEST);
+
+            int type = agentCode / SimulatorAgent.ANALYZERS_PER_TYPE;
+            int index = agentCode % SimulatorAgent.ANALYZERS_PER_TYPE;
+            Cell[] cells = new Cell[9];
+
+            switch (type) {
+                case SimulatorAgent.LINE_TYPE:
+                    cells = sudokuGrid.getLine(index);
+                    break;
+                case SimulatorAgent.COLUMN_TYPE:
+                    cells = sudokuGrid.getColumn(index);
+                    break;
+                case SimulatorAgent.SQUARE_TYPE:
+                    cells = sudokuGrid.getCellsFromSquare(index);
+                    break;
+            }
+
+            StringBuilder sb = new StringBuilder();
+
+            for (Cell cell : cells) {
+                sb.append(cell.getContent()).append(" ");
+            }
+
+            AID receiver = getAID(message.getInReplyTo());
+            newMessage.addReceiver(receiver);
+            newMessage.setContent(sb.toString());
+
+            System.out.println(SimulatorAgent.ANSI_BLUE +
+                    "Msg sent to " + ((AID) newMessage.getAllReceiver().next()).getLocalName() +
+                    ": " + newMessage.getContent() + SimulatorAgent.ANSI_RESET);
+
+            send(newMessage);
+        }
+
         @Override
         public void action() {
 
@@ -21,16 +58,9 @@ public class EnvironmentAgent extends Agent {
             ACLMessage requestMessage = receive(mt);
 
             if (requestMessage != null) {
-                String code = requestMessage.getContent();
-
-                ACLMessage reply = requestMessage.createReply();
-                reply.setPerformative(ACLMessage.REQUEST);
-//                reply.setContent(message);
-                send(reply);
-
+                propagateRequest(requestMessage, Integer.parseInt(requestMessage.getContent()));
             } else
                 block();
-
         }
     }
 
@@ -105,7 +135,7 @@ public class EnvironmentAgent extends Agent {
 
                 initGrid(requestMessage.getContent());
 
-//                addBehaviour(new handleRequestsBehaviour());
+                addBehaviour(new handleRequestsBehaviour());
             } else
                 block();
 

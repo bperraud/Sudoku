@@ -13,6 +13,13 @@ class CellsSquare {
         return cells;
     }
 
+    Cell[] getCellsArray() {
+        Cell[] cellsArray = new Cell[9];
+        for (int i = 0; i < 3; i++)
+            System.arraycopy(cells[i], 0, cellsArray, i * 3, 3);
+        return cellsArray;
+    }
+
     Cell getCell(int line, int column) {
         return cells[line][column];
     }
