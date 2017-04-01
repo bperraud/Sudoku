@@ -22,7 +22,7 @@ public class SimulatorAgent extends Agent {
     static final String ANSI_CYAN = "\u001B[36m";
     static final String ANSI_WHITE = "\u001B[37m";
 
-    private String[][] analyzers;
+    private AID[][] analyzers;
 
     private int NB_TYPES = 3;
 
@@ -33,7 +33,7 @@ public class SimulatorAgent extends Agent {
     private int[] types;
 
     static int ANALYZERS_PER_TYPE = 9;
-    private int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * 3;
+    private int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * NB_TYPES;
 
     private String inlineSudoku = "";
 
@@ -51,8 +51,7 @@ public class SimulatorAgent extends Agent {
 
             if (requestMessage != null) {
                 System.out.println("subscription received!");
-                String agentName = requestMessage.getContent();
-                analyzers[nb_subscriptions_received / ANALYZERS_PER_TYPE][nb_subscriptions_received % ANALYZERS_PER_TYPE] = agentName;
+                analyzers[nb_subscriptions_received / ANALYZERS_PER_TYPE][nb_subscriptions_received % ANALYZERS_PER_TYPE] = requestMessage.getSender();
                 nb_subscriptions_received++;
             } else if (nb_subscriptions_received < SUBSCRIBERS_WANTED)
                 block();
@@ -66,11 +65,11 @@ public class SimulatorAgent extends Agent {
 
     class ClockBehaviour extends TickerBehaviour {
 
-        private void sendTaskRequest(String agentName, int type, int index) {
+        private void sendTaskRequest(AID agent, int type, int index) {
 
             ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
             message.setContent(String.valueOf(type * ANALYZERS_PER_TYPE + index));
-            message.setInReplyTo(agentName);
+            message.setInReplyTo(agent.getLocalName());
             AID receiver = getAID("Environment");
             message.addReceiver(receiver);
             send(message);
@@ -87,7 +86,7 @@ public class SimulatorAgent extends Agent {
             for (int type : types) {
                 for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
                     sendTaskRequest(analyzers[type][i], type, i);
-                    System.out.println(ANSI_GREEN + "analyzer " + analyzers[type][i] + " handles the " +
+                    System.out.println(ANSI_GREEN + "analyzer " + analyzers[type][i].getLocalName() + " handles the " +
                             (type == LINE_TYPE ? "line" : (type == COLUMN_TYPE ? "column" : "square")) +
                             " number " + (i + 1) + ANSI_RESET
                     );
@@ -108,7 +107,7 @@ public class SimulatorAgent extends Agent {
         }
 
         private void initTickerBehaviour() {
-            addBehaviour(new ClockBehaviour(getAgent(), 1000));
+            addBehaviour(new ClockBehaviour(getAgent(), 2000));
         }
 
         @Override
@@ -142,7 +141,7 @@ public class SimulatorAgent extends Agent {
 
         storeInlineSudoku((File) getArguments()[0]);
 
-        analyzers = new String[NB_TYPES][ANALYZERS_PER_TYPE];
+        analyzers = new AID[NB_TYPES][ANALYZERS_PER_TYPE];
 
         types = new int[NB_TYPES];
         types[LINE_TYPE] = LINE_TYPE;

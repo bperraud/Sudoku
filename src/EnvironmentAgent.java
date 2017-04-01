@@ -1,5 +1,8 @@
+import java.io.IOException;
 import java.util.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
@@ -12,6 +15,8 @@ public class EnvironmentAgent extends Agent {
     private SudokuGrid sudokuGrid = new SudokuGrid();
     private boolean gridIsInitialized = false;
 
+    private Map<AID, Integer> agentsRolesMap = new HashMap<>();
+
     class handleRequestsBehaviour extends CyclicBehaviour {
 
         private void propagateRequest(ACLMessage message, int agentCode) {
@@ -20,6 +25,7 @@ public class EnvironmentAgent extends Agent {
 
             int type = agentCode / SimulatorAgent.ANALYZERS_PER_TYPE;
             int index = agentCode % SimulatorAgent.ANALYZERS_PER_TYPE;
+
             Cell[] cells = new Cell[9];
 
             switch (type) {
@@ -34,21 +40,24 @@ public class EnvironmentAgent extends Agent {
                     break;
             }
 
-            StringBuilder sb = new StringBuilder();
-
-            for (Cell cell : cells) {
-                sb.append(cell.getContent()).append(" ");
-            }
-
+            ObjectMapper mapper = new ObjectMapper();
+            String s;
             AID receiver = getAID(message.getInReplyTo());
             newMessage.addReceiver(receiver);
-            newMessage.setContent(sb.toString());
+            agentsRolesMap.put(receiver, agentCode);
 
-            System.out.println(SimulatorAgent.ANSI_BLUE +
-                    "Msg sent to " + ((AID) newMessage.getAllReceiver().next()).getLocalName() +
-                    ": " + newMessage.getContent() + SimulatorAgent.ANSI_RESET);
+            try {
+                s = mapper.writeValueAsString(cells);
+                newMessage.setContent(s);
 
-            send(newMessage);
+                System.out.println(SimulatorAgent.ANSI_BLUE +
+                        "Msg sent to " + ((AID) newMessage.getAllReceiver().next()).getLocalName() +
+                        ": " + newMessage.getContent() + SimulatorAgent.ANSI_RESET);
+
+                send(newMessage);
+            } catch (JsonProcessingException ex) {
+                ex.printStackTrace();
+            }
         }
 
         @Override
@@ -85,19 +94,50 @@ public class EnvironmentAgent extends Agent {
             send(message);
         }
 
+        private void updateGrid(ACLMessage message) {
+
+            String s = message.getContent();
+            ObjectMapper mapper = new ObjectMapper();
+            Cell[] cells;
+
+            try {
+                cells = mapper.readValue(s, Cell[].class);
+
+                System.out.println(SimulatorAgent.ANSI_RED + getLocalName() + " received from " + message.getSender().getLocalName() + ": " + s + SimulatorAgent.ANSI_RESET);
+
+
+                int agentCode = agentsRolesMap.get(message.getSender());
+                int type = agentCode / SimulatorAgent.ANALYZERS_PER_TYPE;
+                int index = agentCode % SimulatorAgent.ANALYZERS_PER_TYPE;
+
+                //TODO: Implement the algorithm which updates the cells' content & possibilities according to received analysis
+
+                switch (type) {
+                    case SimulatorAgent.LINE_TYPE:
+//                        cells = sudokuGrid.getLine(index);
+                        break;
+                    case SimulatorAgent.COLUMN_TYPE:
+//                        cells = sudokuGrid.getColumn(index);
+                        break;
+                    case SimulatorAgent.SQUARE_TYPE:
+//                        cells = sudokuGrid.getCellsFromSquare(index);
+                        break;
+                }
+
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
         @Override
         public void action() {
 
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-            ACLMessage requestMessage = receive(mt);
+            ACLMessage informMessage = receive(mt);
 
-            if (requestMessage != null) {
-                String code = requestMessage.getContent();
-
-                ACLMessage reply = requestMessage.createReply();
-                reply.setPerformative(ACLMessage.REQUEST);
-//                reply.setContent(message);
-                send(reply);
+            if (informMessage != null) {
+                updateGrid(informMessage);
 
             } else if (sudokuGrid.isCompleted()) {
 
@@ -136,6 +176,7 @@ public class EnvironmentAgent extends Agent {
                 initGrid(requestMessage.getContent());
 
                 addBehaviour(new handleRequestsBehaviour());
+                addBehaviour(new handleAnswersBehaviour());
             } else
                 block();
 

@@ -1,23 +1,27 @@
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Cell {
 
-    //    private int index;
     private int content;
     private List<Integer> possibilities = new ArrayList<>();
 
     Cell() {
-        this.content = 0;
+        this(0);
     }
 
-    //    Cell(int index, int content) {
-    Cell(int content) {
-//        this.index = index;
+    private Cell(int content) {
         this.content = content;
     }
 
-    int getContent() {
+    public Cell(@JsonProperty("content")int content, @JsonProperty("possibilities")List<Integer> possibilities) {
+        this.content = content;
+        this.possibilities = possibilities;
+    }
+
+    public int getContent() {
         return content;
     }
 
