@@ -131,7 +131,7 @@ class SudokuGrid {
             int[] column = new int[3];
             System.arraycopy(values, i * 3, column, 0, 3);
 
-            CellsSquare square = columnSquare[index];
+            CellsSquare square = columnSquare[i];
             square.setColumn(index % 3, column);
         }
     }
@@ -147,7 +147,7 @@ class SudokuGrid {
             Cell[] column = new Cell[3];
             System.arraycopy(newCells, i * 3, column, 0, 3);
 
-            CellsSquare square = columnSquare[index / 3];
+            CellsSquare square = columnSquare[i];
             square.setColumn(index % 3, column);
         }
     }
