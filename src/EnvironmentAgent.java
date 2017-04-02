@@ -98,10 +98,11 @@ public class EnvironmentAgent extends Agent {
 
             String s = message.getContent();
             ObjectMapper mapper = new ObjectMapper();
-            Cell[] cells;
+            Cell[] newCells;
+            Cell[] currentCells;
 
             try {
-                cells = mapper.readValue(s, Cell[].class);
+                newCells = mapper.readValue(s, Cell[].class);
 
                 System.out.println(SimulatorAgent.ANSI_RED + getLocalName() + " received from " + message.getSender().getLocalName() + ": " + s + SimulatorAgent.ANSI_RESET);
 
@@ -114,13 +115,70 @@ public class EnvironmentAgent extends Agent {
 
                 switch (type) {
                     case SimulatorAgent.LINE_TYPE:
-//                        cells = sudokuGrid.getLine(index);
+                        currentCells = sudokuGrid.getLine(index);
+                        for (int i = 0; i < 9; i++){
+                        	if (currentCells[i].getContent() == 0){
+                        		if (newCells[i].getContent() != 0){
+                        			currentCells[i].setContent(newCells[i].getContent());
+                        			for (int possibility : currentCells[i].getPossibilities()){
+                        				currentCells[i].removePossibility(possibility);
+                        			}
+                        		}
+                        		else {
+                        			List<Integer> newPossibilities = newCells[i].getPossibilities();
+                        			for (int currentPossibility : currentCells[i].getPossibilities()){
+                        				if (!newPossibilities.contains(currentPossibility)){
+                        					currentCells[i].removePossibility(currentPossibility);
+                        				}
+                        			}
+                        		}
+                        	}
+                        }
+                        sudokuGrid.setLine(index, currentCells);
                         break;
                     case SimulatorAgent.COLUMN_TYPE:
-//                        cells = sudokuGrid.getColumn(index);
+                        currentCells = sudokuGrid.getColumn(index);
+                        for (int i = 0; i < 9; i++){
+                        	if (currentCells[i].getContent() == 0){
+                        		if (newCells[i].getContent() != 0){
+                        			currentCells[i].setContent(newCells[i].getContent());
+                        			for (int possibility : currentCells[i].getPossibilities()){
+                        				currentCells[i].removePossibility(possibility);
+                        			}
+                        		}
+                        		else {
+                        			List<Integer> newPossibilities = newCells[i].getPossibilities();
+                        			for (int currentPossibility : currentCells[i].getPossibilities()){
+                        				if (!newPossibilities.contains(currentPossibility)){
+                        					currentCells[i].removePossibility(currentPossibility);
+                        				}
+                        			}
+                        		}
+                        	}
+                        }
+                        sudokuGrid.setColumn(index, currentCells);
                         break;
                     case SimulatorAgent.SQUARE_TYPE:
-//                        cells = sudokuGrid.getCellsFromSquare(index);
+                        currentCells = sudokuGrid.getCellsFromSquare(index);
+                        for (int i = 0; i < 9; i++){
+                        	if (currentCells[i].getContent() == 0){
+                        		if (newCells[i].getContent() != 0){
+                        			currentCells[i].setContent(newCells[i].getContent());
+                        			for (int possibility : currentCells[i].getPossibilities()){
+                        				currentCells[i].removePossibility(possibility);
+                        			}
+                        		}
+                        		else {
+                        			List<Integer> newPossibilities = newCells[i].getPossibilities();
+                        			for (int currentPossibility : currentCells[i].getPossibilities()){
+                        				if (!newPossibilities.contains(currentPossibility)){
+                        					currentCells[i].removePossibility(currentPossibility);
+                        				}
+                        			}
+                        		}
+                        	}
+                        }
+                        sudokuGrid.setCellsSquare(index, currentCells);
                         break;
                 }
 

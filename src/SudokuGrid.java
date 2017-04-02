@@ -103,6 +103,22 @@ class SudokuGrid {
             square.setLine(index % 3, line);
         }
     }
+    
+    void setLine(int index, Cell[] newCells) {
+        if (newCells.length != 9)
+            return;
+
+        CellsSquare[] lineSquare = getLineSquares(index / 3);
+
+        for (int j = 0; j < 3; j++) {
+
+            Cell[] line = new Cell[3];
+            System.arraycopy(newCells, j * 3, line, 0, 3);
+
+            CellsSquare square = lineSquare[j];
+            square.setLine(index % 3, line);
+        }
+    }
 
     void setColumn(int index, int[] values) {
         if (values.length != 9)
@@ -118,6 +134,33 @@ class SudokuGrid {
             CellsSquare square = columnSquare[index];
             square.setColumn(index % 3, column);
         }
+    }
+    
+    void setColumn(int index, Cell[] newCells) {
+        if (newCells.length != 9)
+            return;
+
+        CellsSquare[] columnSquare = getColumnSquares(index / 3);
+
+        for (int i = 0; i < 3; i++) {
+
+            Cell[] column = new Cell[3];
+            System.arraycopy(newCells, i * 3, column, 0, 3);
+
+            CellsSquare square = columnSquare[index / 3];
+            square.setColumn(index % 3, column);
+        }
+    }
+    
+    void setCellsSquare(int index, Cell[] cells){
+    	if (cells.length != 9){
+    		return;
+    	}
+    	Cell[][] newCells = new Cell[3][3];
+    	for (int i = 0; i < 9; i++){
+    		newCells[i / 3][i % 3] = cells[i];
+    	}
+    	getCellsSquare(index).setCells(newCells);
     }
 
     void setCell(int line, int column, int val) {

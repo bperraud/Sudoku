@@ -64,6 +64,14 @@ class CellsSquare {
         for (int j = 0; j < 3; j++)
             cells[index][j].setContent(values[j]);
     }
+    
+    void setLine(int index, Cell[] newCells) {
+        if (newCells.length != 3)
+            return;
+
+        for (int j = 0; j < 3; j++)
+            cells[index][j] = newCells[j];
+    }
 
     void setColumn(int index, int[] values) {
         if (values.length != 3)
@@ -71,6 +79,14 @@ class CellsSquare {
 
         for (int i = 0; i < 3; i++)
             cells[i][index].setContent(values[i]);
+    }
+    
+    void setColumn(int index, Cell[] newCells) {
+        if (newCells.length != 3)
+            return;
+
+        for (int i = 0; i < 3; i++)
+            cells[i][index] = newCells[i];
     }
 
     void setCell(int line, int column, int val) {
