@@ -1,6 +1,4 @@
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 class SudokuGrid {
 
@@ -38,7 +36,6 @@ class SudokuGrid {
 
         for (int j = 0; j < 3; j++) {
             CellsSquare square = lineSquare[j];
-//            System.arraycopy(square.getLine(index % 3), 0, line, 3 * j, 3);
             cellsList.addAll(Arrays.asList(square.getLine(index % 3)));
         }
 
@@ -50,16 +47,35 @@ class SudokuGrid {
         CellsSquare[] columnSquare = getColumnSquares(index / 3);
         Cell[] column = new Cell[9];
 
+        List<Cell> cellsList = new LinkedList<>();
+
         for (int i = 0; i < 3; i++) {
             CellsSquare square = columnSquare[i];
-            System.arraycopy(square.getColumn(index % 3), 0, column, 3 * i, 3);
+            cellsList.addAll(Arrays.asList(square.getColumn(index % 3)));
         }
 
-        return column;
+        return cellsList.toArray(column);
     }
 
     Cell[] getCellsFromSquare(int index) {
         return getCellsSquare(index).getCellsArray();
+    }
+
+    static Set<Integer> getValuesToFindFromCells(Cell[] cells) {
+        Integer[] values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        Set<Integer> valuesToFind = new HashSet<>(Arrays.asList(values));
+        Set<Integer> knownValues = getKnownValuesFromCells(cells);
+        valuesToFind.removeAll(knownValues);
+        return valuesToFind;
+    }
+
+    static Set<Integer> getKnownValuesFromCells(Cell[] cells) {
+        Set<Integer> knownValues = new HashSet<>();
+        for (Cell cell : cells) {
+            if (cell.isSet())
+                knownValues.add(cell.getContent());
+        }
+        return knownValues;
     }
 
     private CellsSquare[] getColumnSquares(int index) {
@@ -68,6 +84,36 @@ class SudokuGrid {
             line[i] = cellsSquares[i][index];
         }
         return line;
+    }
+
+    void initPossibilities(int[] values) {
+
+//        System.out.println("initPossibilities");
+//        for (int i = 0; i < values.length; i++) {
+//            int value = values[i];
+//            System.out.println("v " + i + " : " + value);
+//        }
+
+
+        int i;
+        Set<Integer> maxPossibilities = new HashSet<>();
+        for (i = 1; i <= 9; i++) {
+            maxPossibilities.add(i);
+        }
+
+        for (i = 0; i < 9; i++) {
+        Cell[] cellsLine = getLine(i);
+            for (int j = 0; j < cellsLine.length; j++) {
+                Cell cell = cellsLine[j];
+                if (values[i * 9 + j] == 0) {
+//                    System.out.println("setPossibility!!!");
+//                    System.out.println(cell.getIndex());
+
+                    cell.setPossibilities(maxPossibilities);
+                }
+            }
+        }
+
     }
 
     void setCells(int[][] values) {
@@ -111,22 +157,6 @@ class SudokuGrid {
         }
     }
 
-    void setLine(int index, Cell[] newCells) {
-        if (newCells.length != 9)
-            return;
-
-        CellsSquare[] lineSquare = getLineSquares(index / 3);
-
-        for (int j = 0; j < 3; j++) {
-
-            Cell[] line = new Cell[3];
-            System.arraycopy(newCells, j * 3, line, 0, 3);
-
-            CellsSquare square = lineSquare[j];
-            square.setLine(index % 3, line);
-        }
-    }
-
     void setColumn(int index, int[] values) {
         if (values.length != 9)
             return;
@@ -143,31 +173,22 @@ class SudokuGrid {
         }
     }
 
-    void setColumn(int index, Cell[] newCells) {
-        if (newCells.length != 9)
+    void setCellsSquare(int index, int[][] values) {
+        if (values.length != 9 || values[0].length != 9)
             return;
 
-        CellsSquare[] columnSquare = getColumnSquares(index / 3);
-
-        for (int i = 0; i < 3; i++) {
-
-            Cell[] column = new Cell[3];
-            System.arraycopy(newCells, i * 3, column, 0, 3);
-
-            CellsSquare square = columnSquare[i];
-            square.setColumn(index % 3, column);
-        }
+        getCellsSquare(index).setCells(values);
     }
 
-    void setCellsSquare(int index, Cell[] cells) {
-        if (cells.length != 9) {
+    void setCellsSquare(int index, int[] values) {
+        if (values.length != 9) {
             return;
         }
-        Cell[][] newCells = new Cell[3][3];
+        int[][] newVals = new int[3][3];
         for (int i = 0; i < 9; i++) {
-            newCells[i / 3][i % 3] = cells[i];
+            newVals[i / 3][i % 3] = values[i];
         }
-        getCellsSquare(index).setCells(newCells);
+        getCellsSquare(index).setCells(newVals);
     }
 
     void setCell(int line, int column, int val) {

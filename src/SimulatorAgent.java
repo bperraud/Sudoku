@@ -2,8 +2,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.*;
@@ -36,11 +34,32 @@ public class SimulatorAgent extends Agent {
     private int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * NB_TYPES;
 
     private String inlineSudoku = "";
+    private SequentialBehaviour seq;
 
-    private class HandleSimulationBehaviour extends SequentialBehaviour {
+    private class HandleSimulationBehaviour extends SequentialBehaviour {}
+
+    class TerminateSimulationBehaviour extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+
+                Scanner sc = new Scanner(inlineSudoku);
+                int[] values = new int[81];
+                int i = 0;
+
+                while (sc.hasNext()) {
+                    values[i++] = Integer.parseInt(sc.next());
+                }
+
+                SudokuGrid finishedGrid = new SudokuGrid();
+                finishedGrid.setCells(values);
+                finishedGrid.printGrid();
+
+
+        }
     }
 
-    class waitForSubscriptionBehaviour extends Behaviour {
+    class WaitForSubscriptionBehaviour extends Behaviour {
 
         private int nb_subscriptions_received = 0;
 
@@ -50,7 +69,7 @@ public class SimulatorAgent extends Agent {
             ACLMessage requestMessage = receive(mt);
 
             if (requestMessage != null) {
-                System.out.println("subscription received!");
+//                System.out.println("subscription received!");
                 analyzers[nb_subscriptions_received / ANALYZERS_PER_TYPE][nb_subscriptions_received % ANALYZERS_PER_TYPE] = requestMessage.getSender();
                 nb_subscriptions_received++;
             } else if (nb_subscriptions_received < SUBSCRIBERS_WANTED)
@@ -83,13 +102,28 @@ public class SimulatorAgent extends Agent {
         @Override
         protected void onTick() {
 
-            for (int type : types) {
-                for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
-                    sendTaskRequest(analyzers[type][i], type, i);
+            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            ACLMessage requestMessage = receive(mt);
+
+            if (requestMessage != null) {
+
+                System.out.println(this.getParent());
+
+                inlineSudoku = requestMessage.getContent();
+                seq.addSubBehaviour(new TerminateSimulationBehaviour());
+                this.stop();
+
+            } else {
+
+
+                for (int type : types) {
+                    for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
+                        sendTaskRequest(analyzers[type][i], type, i);
 //                    System.out.println(ANSI_GREEN + "analyzer " + analyzers[type][i].getLocalName() + " handles the " +
 //                            (type == LINE_TYPE ? "line" : (type == COLUMN_TYPE ? "column" : "square")) +
 //                            " number " + (i + 1) + ANSI_RESET
 //                    );
+                    }
                 }
             }
         }
@@ -137,7 +171,7 @@ public class SimulatorAgent extends Agent {
     }
 
     protected void setup() {
-        System.out.println("Agent created ! Name : " + getLocalName());
+//        System.out.println("Agent created ! Name : " + getLocalName());
 
         storeInlineSudoku((File) getArguments()[0]);
 
@@ -148,8 +182,8 @@ public class SimulatorAgent extends Agent {
         types[COLUMN_TYPE] = COLUMN_TYPE;
         types[SQUARE_TYPE] = SQUARE_TYPE;
 
-        SequentialBehaviour seq = new HandleSimulationBehaviour();
-        seq.addSubBehaviour(new waitForSubscriptionBehaviour());
+        seq = new HandleSimulationBehaviour();
+        seq.addSubBehaviour(new WaitForSubscriptionBehaviour());
         seq.addSubBehaviour(new InitSimulationBehaviour());
         addBehaviour(seq);
     }
