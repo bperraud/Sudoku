@@ -86,10 +86,10 @@ public class SimulatorAgent extends Agent {
             for (int type : types) {
                 for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
                     sendTaskRequest(analyzers[type][i], type, i);
-                    System.out.println(ANSI_GREEN + "analyzer " + analyzers[type][i].getLocalName() + " handles the " +
-                            (type == LINE_TYPE ? "line" : (type == COLUMN_TYPE ? "column" : "square")) +
-                            " number " + (i + 1) + ANSI_RESET
-                    );
+//                    System.out.println(ANSI_GREEN + "analyzer " + analyzers[type][i].getLocalName() + " handles the " +
+//                            (type == LINE_TYPE ? "line" : (type == COLUMN_TYPE ? "column" : "square")) +
+//                            " number " + (i + 1) + ANSI_RESET
+//                    );
                 }
             }
         }
@@ -107,7 +107,7 @@ public class SimulatorAgent extends Agent {
         }
 
         private void initTickerBehaviour() {
-            addBehaviour(new ClockBehaviour(getAgent(), 2000));
+            addBehaviour(new ClockBehaviour(getAgent(), 500));
         }
 
         @Override

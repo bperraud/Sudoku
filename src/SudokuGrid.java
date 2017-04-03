@@ -1,3 +1,7 @@
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 class SudokuGrid {
 
     private CellsSquare[][] cellsSquares;
@@ -30,12 +34,15 @@ class SudokuGrid {
         CellsSquare[] lineSquare = getLineSquares(index / 3);
         Cell[] line = new Cell[9];
 
+        List<Cell> cellsList = new LinkedList<>();
+
         for (int j = 0; j < 3; j++) {
             CellsSquare square = lineSquare[j];
-            System.arraycopy(square.getLine(index % 3), 0, line, 3 * j, 3);
+//            System.arraycopy(square.getLine(index % 3), 0, line, 3 * j, 3);
+            cellsList.addAll(Arrays.asList(square.getLine(index % 3)));
         }
 
-        return line;
+        return cellsList.toArray(line);
     }
 
     Cell[] getColumn(int index) {
@@ -103,7 +110,7 @@ class SudokuGrid {
             square.setLine(index % 3, line);
         }
     }
-    
+
     void setLine(int index, Cell[] newCells) {
         if (newCells.length != 9)
             return;
@@ -135,7 +142,7 @@ class SudokuGrid {
             square.setColumn(index % 3, column);
         }
     }
-    
+
     void setColumn(int index, Cell[] newCells) {
         if (newCells.length != 9)
             return;
@@ -151,16 +158,16 @@ class SudokuGrid {
             square.setColumn(index % 3, column);
         }
     }
-    
-    void setCellsSquare(int index, Cell[] cells){
-    	if (cells.length != 9){
-    		return;
-    	}
-    	Cell[][] newCells = new Cell[3][3];
-    	for (int i = 0; i < 9; i++){
-    		newCells[i / 3][i % 3] = cells[i];
-    	}
-    	getCellsSquare(index).setCells(newCells);
+
+    void setCellsSquare(int index, Cell[] cells) {
+        if (cells.length != 9) {
+            return;
+        }
+        Cell[][] newCells = new Cell[3][3];
+        for (int i = 0; i < 9; i++) {
+            newCells[i / 3][i % 3] = cells[i];
+        }
+        getCellsSquare(index).setCells(newCells);
     }
 
     void setCell(int line, int column, int val) {
@@ -170,28 +177,30 @@ class SudokuGrid {
     }
 
     void printGrid() {
-        System.out.println("-------------------");
+        synchronized (System.out) {
+            System.out.println("-------------------");
 
-        for (int i = 0; i < 9; i++) {
+            for (int i = 0; i < 9; i++) {
 
-            System.out.print("|");
+                System.out.print("|");
 
-            for (int j = 0; j < 9; j++) {
+                for (int j = 0; j < 9; j++) {
 
-                Cell cell = getLine(i)[j];
+                    Cell cell = getLine(i)[j];
 
-                System.out.print(cell.getContent());
+                    System.out.print(cell.getContent());
 
-                if (j % 3 == 2)
-                    System.out.print("|");
+                    if (j % 3 == 2)
+                        System.out.print("|");
+                    else
+                        System.out.print(" ");
+                }
+
+                if (i % 3 == 2)
+                    System.out.println("\n-------------------");
                 else
-                    System.out.print(" ");
+                    System.out.println();
             }
-
-            if (i % 3 == 2)
-                System.out.println("\n-------------------");
-            else
-                System.out.println();
         }
     }
 

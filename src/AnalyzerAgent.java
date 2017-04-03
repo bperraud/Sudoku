@@ -45,9 +45,9 @@ public class AnalyzerAgent extends Agent {
                 s = mapper.writeValueAsString(cells);
                 answer.setContent(s);
 
-                System.out.println(SimulatorAgent.ANSI_PURPLE +
-                        "Msg of " + getLocalName() + " sent to " + ((AID) answer.getAllReceiver().next()).getLocalName() +
-                        ": " + answer.getContent() + SimulatorAgent.ANSI_RESET);
+//                System.out.println(SimulatorAgent.ANSI_PURPLE +
+//                        "Msg of " + getLocalName() + " sent to " + ((AID) answer.getAllReceiver().next()).getLocalName() +
+//                        ": " + answer.getContent() + SimulatorAgent.ANSI_RESET);
 
                 send(answer);
             } catch (JsonProcessingException ex) {
@@ -75,7 +75,7 @@ public class AnalyzerAgent extends Agent {
             try {
                 cells = mapper.readValue(s, Cell[].class);
 
-                System.out.println(SimulatorAgent.ANSI_YELLOW + getLocalName() + " received: " + s + SimulatorAgent.ANSI_RESET);
+//                System.out.println(SimulatorAgent.ANSI_YELLOW + getLocalName() + " received: " + s + SimulatorAgent.ANSI_RESET);
 
                 Integer[] values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
                 List<Integer> valuesToFind = new LinkedList<>(Arrays.asList(values));
@@ -88,7 +88,7 @@ public class AnalyzerAgent extends Agent {
                 valuesToFind.removeAll(knownValues);
 
                 for (Cell cell : cells) {
-                    System.out.println(SimulatorAgent.ANSI_CYAN + getLocalName() + " received cell: " + cell.getContent() + ", " + cell.getPossibilities() + SimulatorAgent.ANSI_RESET);
+//                    System.out.println(SimulatorAgent.ANSI_CYAN + getLocalName() + " received cell: " + cell.getContent() + ", " + cell.getPossibilities() + SimulatorAgent.ANSI_RESET);
                     calculatePossibilities(cell, valuesToFind);
                 }
 

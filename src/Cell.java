@@ -34,6 +34,9 @@ public class Cell {
 //    }
 
     void setContent(int val) {
+        System.out.println("SetContent : old val = " + this.content + ", new val = " + val);
+        if (this.content != 0)
+            System.out.println(SimulatorAgent.ANSI_RED + "PROBLEME" + SimulatorAgent.ANSI_RESET);
         this.content = val;
     }
 
