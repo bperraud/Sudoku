@@ -34,14 +34,26 @@ public class SimulatorAgent extends Agent {
     private int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * NB_TYPES;
 
     private String inlineSudoku = "";
-    private SequentialBehaviour seq;
+
+    private ClockBehaviour clockBehaviour = null;
 
     private class HandleSimulationBehaviour extends SequentialBehaviour {}
 
-    class TerminateSimulationBehaviour extends OneShotBehaviour {
+    class TerminateSimulationBehaviour extends Behaviour {
+
+        private boolean sudokuIsSolved = false;
 
         @Override
         public void action() {
+
+            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            ACLMessage requestMessage = receive(mt);
+
+            if (requestMessage != null) {
+
+                System.out.println("Sudoku is finished !");
+                sudokuIsSolved = true;
+                clockBehaviour.stop();
 
                 Scanner sc = new Scanner(inlineSudoku);
                 int[] values = new int[81];
@@ -55,7 +67,14 @@ public class SimulatorAgent extends Agent {
                 finishedGrid.setCells(values);
                 finishedGrid.printGrid();
 
+            } else
+                block();
 
+        }
+
+        @Override
+        public boolean done() {
+            return sudokuIsSolved;
         }
     }
 
@@ -102,20 +121,6 @@ public class SimulatorAgent extends Agent {
         @Override
         protected void onTick() {
 
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-            ACLMessage requestMessage = receive(mt);
-
-            if (requestMessage != null) {
-
-                System.out.println(this.getParent());
-
-                inlineSudoku = requestMessage.getContent();
-                seq.addSubBehaviour(new TerminateSimulationBehaviour());
-                this.stop();
-
-            } else {
-
-
                 for (int type : types) {
                     for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
                         sendTaskRequest(analyzers[type][i], type, i);
@@ -125,7 +130,7 @@ public class SimulatorAgent extends Agent {
 //                    );
                     }
                 }
-            }
+
         }
     }
 
@@ -141,7 +146,8 @@ public class SimulatorAgent extends Agent {
         }
 
         private void initTickerBehaviour() {
-            addBehaviour(new ClockBehaviour(getAgent(), 500));
+            clockBehaviour = new ClockBehaviour(getAgent(), 500);
+            addBehaviour(clockBehaviour);
         }
 
         @Override
@@ -182,9 +188,10 @@ public class SimulatorAgent extends Agent {
         types[COLUMN_TYPE] = COLUMN_TYPE;
         types[SQUARE_TYPE] = SQUARE_TYPE;
 
-        seq = new HandleSimulationBehaviour();
+        HandleSimulationBehaviour seq = new HandleSimulationBehaviour();
         seq.addSubBehaviour(new WaitForSubscriptionBehaviour());
         seq.addSubBehaviour(new InitSimulationBehaviour());
+        seq.addSubBehaviour(new TerminateSimulationBehaviour());
         addBehaviour(seq);
     }
 

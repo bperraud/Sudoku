@@ -19,7 +19,7 @@ public class EnvironmentAgent extends Agent {
 
     private Map<AID, Integer> agentsRolesMap = new HashMap<>();
 
-    class handleRequestsBehaviour extends CyclicBehaviour {
+    class handleRequestsBehaviour extends Behaviour {
 
         private void propagateRequest(ACLMessage message, int agentCode) {
 
@@ -74,14 +74,19 @@ public class EnvironmentAgent extends Agent {
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
             ACLMessage requestMessage = receive(mt);
 
-            if (requestMessage != null) {
+            if (requestMessage != null)
                 propagateRequest(requestMessage, Integer.parseInt(requestMessage.getContent()));
-            } else
+            else
                 block();
+        }
+
+        @Override
+        public boolean done() {
+            return sudokuGrid.isCompleted();
         }
     }
 
-    class handleAnswersBehaviour extends CyclicBehaviour {
+    class handleAnswersBehaviour extends Behaviour {
 
         private void sendCompletedSudokuGrid() {
             ACLMessage message = new ACLMessage(ACLMessage.INFORM);
@@ -276,19 +281,21 @@ public class EnvironmentAgent extends Agent {
 
         @Override
         public void action() {
-
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
             ACLMessage informMessage = receive(mt);
 
-            if (informMessage != null) {
+            if (informMessage != null)
                 updateGrid(informMessage);
-
-            } else if (sudokuGrid.isCompleted()) {
-                sendCompletedSudokuGrid();
-
-            } else
+            else
                 block();
+        }
 
+        @Override
+        public boolean done() {
+            if (!sudokuGrid.isCompleted())
+                return false;
+            sendCompletedSudokuGrid();
+            return true;
         }
     }
 
