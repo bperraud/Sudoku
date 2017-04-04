@@ -151,7 +151,7 @@ public class EnvironmentAgent extends Agent {
 
             if (type == SimulatorAgent.SQUARE_TYPE && index == 3) {
 
-                Cell[] cellsArray = sudokuGrid.getCellsSquare(3).getCellsArray();
+//                Cell[] cellsArray = sudokuGrid.getCellsSquare(3).getCellsArray();
 //                for (int i = 0; i < cellsArray.length; i++) {
 //                    Cell cell = cellsArray[i];
 //
@@ -327,15 +327,15 @@ public class EnvironmentAgent extends Agent {
 
 
 
-            Cell[][] cells1 = sudokuGrid.getCellsSquare(3).getCells();
-            for (int i1 = 0; i1 < cells1.length; i1++) {
-                Cell[] cells = cells1[i1];
-                for (int i2 = 0; i2 < cells.length; i2++) {
-                    Cell cell = cells[i2];
+//            Cell[][] cells1 = sudokuGrid.getCellsSquare(3).getCells();
+//            for (int i1 = 0; i1 < cells1.length; i1++) {
+//                Cell[] cells = cells1[i1];
+//                for (int i2 = 0; i2 < cells.length; i2++) {
+//                    Cell cell = cells[i2];
 //                    System.out.println("SQUARE, cell " + (i1*3 + i2) + " : " + cell.getContent());
 //                    System.out.println("SQUARE, cell " + (i1*3 + i2) + " : " + cell.getPossibilities());
-                }
-            }
+//                }
+//            }
 
 
         }

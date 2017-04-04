@@ -2,63 +2,33 @@ import java.util.*;
 
 class SudokuGrid {
 
-    private CellsSquare[][] cellsSquares;
+    private Cell[][] cells;
 
     SudokuGrid() {
-        cellsSquares = new CellsSquare[3][3];
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                cellsSquares[i][j] = new CellsSquare();
-    }
-
-    CellsSquare[][] getCellsSquares() {
-        return cellsSquares;
-    }
-
-    CellsSquare getCellsSquare(int line, int column) {
-        return cellsSquares[line][column];
-    }
-
-    CellsSquare getCellsSquare(int index) {
-        return getCellsSquare(index / 3, index % 3);
-    }
-
-    private CellsSquare[] getLineSquares(int index) {
-        return cellsSquares[index];
+        cells = new Cell[9][9];
+        for (int i = 0; i < 9; i++)
+            for (int j = 0; j < 9; j++)
+                cells[i][j] = new Cell();
     }
 
     Cell[] getLine(int index) {
-
-        CellsSquare[] lineSquare = getLineSquares(index / 3);
-        Cell[] line = new Cell[9];
-
-        List<Cell> cellsList = new LinkedList<>();
-
-        for (int j = 0; j < 3; j++) {
-            CellsSquare square = lineSquare[j];
-            cellsList.addAll(Arrays.asList(square.getLine(index % 3)));
-        }
-
-        return cellsList.toArray(line);
+        return cells[index];
     }
 
     Cell[] getColumn(int index) {
-
-        CellsSquare[] columnSquare = getColumnSquares(index / 3);
-        Cell[] column = new Cell[9];
-
-        List<Cell> cellsList = new LinkedList<>();
-
-        for (int i = 0; i < 3; i++) {
-            CellsSquare square = columnSquare[i];
-            cellsList.addAll(Arrays.asList(square.getColumn(index % 3)));
+        Cell[] line = new Cell[9];
+        for (int i = 0; i < 9; i++) {
+            line[i] = cells[i][index];
         }
-
-        return cellsList.toArray(column);
+        return line;
     }
 
     Cell[] getCellsFromSquare(int index) {
-        return getCellsSquare(index).getCellsArray();
+        Cell[] square = new Cell[9];
+        for (int i = 0; i < 3; i++) {
+            System.arraycopy(cells[(index / 3) * 3 + i], (index % 3) * 3, square, i * 3, 3);
+        }
+        return square;
     }
 
     static Set<Integer> getValuesToFindFromCells(Cell[] cells) {
@@ -69,21 +39,13 @@ class SudokuGrid {
         return valuesToFind;
     }
 
-    static Set<Integer> getKnownValuesFromCells(Cell[] cells) {
+    private static Set<Integer> getKnownValuesFromCells(Cell[] cells) {
         Set<Integer> knownValues = new HashSet<>();
         for (Cell cell : cells) {
             if (cell.isSet())
                 knownValues.add(cell.getContent());
         }
         return knownValues;
-    }
-
-    private CellsSquare[] getColumnSquares(int index) {
-        CellsSquare[] line = new CellsSquare[3];
-        for (int i = 0; i < 3; i++) {
-            line[i] = cellsSquares[i][index];
-        }
-        return line;
     }
 
     void initPossibilities(int[] values) {
@@ -121,7 +83,9 @@ class SudokuGrid {
             return;
 
         for (int i = 0; i < 9; i++) {
-            setLine(i, values[i]);
+            for (int j = 0; j < 9; j++) {
+            cells[i][j].setContent(values[i][j]);
+            }
         }
     }
 
@@ -130,71 +94,30 @@ class SudokuGrid {
             return;
 
         for (int i = 0; i < 9; i++) {
-            int[] line = new int[9];
-            System.arraycopy(values, i * 9, line, 0, 9);
-
-            setLine(i, line);
+            for (int j = 0; j < 9; j++) {
+                cells[i][j].setContent(values[i * 9 + j]);
+            }
         }
-    }
-
-    void setCells(CellsSquare[][] cellsSquares) {
-        this.cellsSquares = cellsSquares;
     }
 
     void setLine(int index, int[] values) {
         if (values.length != 9)
             return;
 
-        CellsSquare[] lineSquare = getLineSquares(index / 3);
-
-        for (int j = 0; j < 3; j++) {
-
-            int[] line = new int[3];
-            System.arraycopy(values, j * 3, line, 0, 3);
-
-            CellsSquare square = lineSquare[j];
-            square.setLine(index % 3, line);
-        }
+        for (int j = 0; j < 9; j++)
+            cells[index][j].setContent(values[j]);
     }
 
     void setColumn(int index, int[] values) {
-        if (values.length != 9)
+        if (values.length != 3)
             return;
 
-        CellsSquare[] columnSquare = getColumnSquares(index / 3);
-
-        for (int i = 0; i < 3; i++) {
-
-            int[] column = new int[3];
-            System.arraycopy(values, i * 3, column, 0, 3);
-
-            CellsSquare square = columnSquare[i];
-            square.setColumn(index % 3, column);
-        }
-    }
-
-    void setCellsSquare(int index, int[][] values) {
-        if (values.length != 9 || values[0].length != 9)
-            return;
-
-        getCellsSquare(index).setCells(values);
-    }
-
-    void setCellsSquare(int index, int[] values) {
-        if (values.length != 9) {
-            return;
-        }
-        int[][] newVals = new int[3][3];
-        for (int i = 0; i < 9; i++) {
-            newVals[i / 3][i % 3] = values[i];
-        }
-        getCellsSquare(index).setCells(newVals);
+        for (int i = 0; i < 3; i++)
+            cells[i][index].setContent(values[i]);
     }
 
     void setCell(int line, int column, int val) {
-        int squareLine = line / 3;
-        int squareColumn = column / 3;
-        getCellsSquare(squareLine, squareColumn).setCell(line, column, val);
+        cells[line][column].setContent(val);
     }
 
     void printGrid() {
@@ -207,7 +130,7 @@ class SudokuGrid {
 
                 for (int j = 0; j < 9; j++) {
 
-                    Cell cell = getLine(i)[j];
+                    Cell cell = cells[i][j];
 
                     System.out.print(cell.getContent());
 
@@ -227,14 +150,15 @@ class SudokuGrid {
 
     boolean isCompleted() {
         boolean completed = true;
-        for (CellsSquare[] lineSquares : cellsSquares) {
-            for (CellsSquare square : lineSquares) {
-                if (!square.isCompleted()) {
+        for (Cell[] lineCells : cells) {
+            for (Cell cell : lineCells) {
+                if (!cell.isCompleted()) {
                     completed = false;
                     break;
                 }
             }
         }
+
         return completed;
     }
 }

@@ -47,15 +47,15 @@ public class SimulatorAgent extends Agent {
         public void action() {
 
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-            ACLMessage requestMessage = receive(mt);
+            ACLMessage informMessage = receive(mt);
 
-            if (requestMessage != null) {
+            if (informMessage != null) {
 
                 System.out.println("Sudoku is finished !");
                 sudokuIsSolved = true;
                 clockBehaviour.stop();
 
-                Scanner sc = new Scanner(inlineSudoku);
+                Scanner sc = new Scanner(informMessage.getContent());
                 int[] values = new int[81];
                 int i = 0;
 
