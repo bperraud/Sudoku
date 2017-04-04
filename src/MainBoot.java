@@ -1,7 +1,6 @@
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
-import jade.wrapper.AgentContainer;
 
 public class MainBoot {
 
@@ -13,7 +12,7 @@ public class MainBoot {
         try {
             String MAIN_PROPERTIES_FILE = "main_container.txt";
             p = new ProfileImpl(MAIN_PROPERTIES_FILE);
-            AgentContainer mc = rt.createMainContainer(p);
+            rt.createMainContainer(p);
 
         } catch (Exception ex) {
             ex.printStackTrace();

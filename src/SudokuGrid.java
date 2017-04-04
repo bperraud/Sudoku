@@ -5,7 +5,7 @@ import java.util.*;
 class SudokuGrid {
 
     @JsonProperty("cells")
-    private Cell[][] cells;
+    private final Cell[][] cells;
 
     private SudokuGrid(@JsonProperty("cells") Cell[][] cells) {
         this.cells = cells;

@@ -12,7 +12,7 @@ public class EnvironmentAgent extends Agent {
 
     private SudokuGrid sudokuGrid = null;
 
-    private Map<AID, Integer> agentsRolesMap = new HashMap<>();
+    private final Map<AID, Integer> agentsRolesMap = new HashMap<>();
 
     private Cell[] getCellsByAgentCode(int agentCode) {
         Cell[] cells = new Cell[9];

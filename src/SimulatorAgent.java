@@ -10,6 +10,7 @@ import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+@SuppressWarnings("unused")
 public class SimulatorAgent extends Agent {
 
     static final String ANSI_RESET = "\u001B[0m";
@@ -24,7 +25,7 @@ public class SimulatorAgent extends Agent {
 
     private AID[][] analyzers;
 
-    private int NB_TYPES = 3;
+    private final int NB_TYPES = 3;
 
     static final int LINE_TYPE = 0;
     static final int COLUMN_TYPE = 1;
@@ -32,8 +33,8 @@ public class SimulatorAgent extends Agent {
 
     private int[] types;
 
-    static int ANALYZERS_PER_TYPE = 9;
-    private int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * NB_TYPES;
+    static final int ANALYZERS_PER_TYPE = 9;
+    private final int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * NB_TYPES;
 
     private ClockBehaviour clockBehaviour = null;
 
@@ -129,7 +130,7 @@ public class SimulatorAgent extends Agent {
 
     class InitSimulationBehaviour extends OneShotBehaviour {
 
-        SudokuGrid sudokuGrid;
+        final SudokuGrid sudokuGrid;
 
         InitSimulationBehaviour(SudokuGrid sudokuGrid) {
             this.sudokuGrid = sudokuGrid;
