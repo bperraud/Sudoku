@@ -37,7 +37,8 @@ public class SimulatorAgent extends Agent {
 
     private ClockBehaviour clockBehaviour = null;
 
-    private class HandleSimulationBehaviour extends SequentialBehaviour {}
+    private class HandleSimulationBehaviour extends SequentialBehaviour {
+    }
 
     class TerminateSimulationBehaviour extends Behaviour {
 
@@ -51,7 +52,7 @@ public class SimulatorAgent extends Agent {
 
             if (informMessage != null) {
 
-                System.out.println("Sudoku is finished !");
+                System.out.println(ANSI_GREEN + "Sudoku is finished !" + ANSI_RESET);
                 sudokuIsSolved = true;
                 clockBehaviour.stop();
 
@@ -88,7 +89,6 @@ public class SimulatorAgent extends Agent {
             ACLMessage requestMessage = receive(mt);
 
             if (requestMessage != null) {
-//                System.out.println("subscription received!");
                 analyzers[nb_subscriptions_received / ANALYZERS_PER_TYPE][nb_subscriptions_received % ANALYZERS_PER_TYPE] = requestMessage.getSender();
                 nb_subscriptions_received++;
             } else if (nb_subscriptions_received < SUBSCRIBERS_WANTED)
@@ -114,23 +114,17 @@ public class SimulatorAgent extends Agent {
 
         }
 
-        ClockBehaviour(Agent a, long period) {
-            super(a, period);
+        ClockBehaviour(Agent a) {
+            super(a, (long) 500);
         }
 
         @Override
         protected void onTick() {
-
-                for (int type : types) {
-                    for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
-                        sendTaskRequest(analyzers[type][i], type, i);
-//                    System.out.println(ANSI_GREEN + "analyzer " + analyzers[type][i].getLocalName() + " handles the " +
-//                            (type == LINE_TYPE ? "line" : (type == COLUMN_TYPE ? "column" : "square")) +
-//                            " number " + (i + 1) + ANSI_RESET
-//                    );
-                    }
+            for (int type : types) {
+                for (int i = 0; i < ANALYZERS_PER_TYPE; i++) {
+                    sendTaskRequest(analyzers[type][i], type, i);
                 }
-
+            }
         }
     }
 
@@ -146,7 +140,7 @@ public class SimulatorAgent extends Agent {
         }
 
         private void initTickerBehaviour() {
-            clockBehaviour = new ClockBehaviour(getAgent(), 500);
+            clockBehaviour = new ClockBehaviour(getAgent());
             addBehaviour(clockBehaviour);
         }
 
@@ -177,8 +171,6 @@ public class SimulatorAgent extends Agent {
     }
 
     protected void setup() {
-//        System.out.println("Agent created ! Name : " + getLocalName());
-
         storeInlineSudoku((File) getArguments()[0]);
 
         analyzers = new AID[NB_TYPES][ANALYZERS_PER_TYPE];

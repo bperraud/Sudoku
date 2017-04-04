@@ -1,4 +1,3 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jade.core.AID;
 import jade.core.Agent;
@@ -21,7 +20,6 @@ public class AnalyzerAgent extends Agent {
             AID receiver = getAID("Simulator");
             message.addReceiver(receiver);
             send(message);
-//            System.out.println("subscription sent!");
 
             addBehaviour(new AnalyzeBehaviour());
         }
@@ -30,30 +28,12 @@ public class AnalyzerAgent extends Agent {
     class AnalyzeBehaviour extends CyclicBehaviour {
 
         private void answer(Cell[] cells, ACLMessage message) {
-
-//            System.out.println(getLocalName() + " ANSWERS");
-
             ACLMessage answer = message.createReply();
             answer.setPerformative(ACLMessage.INFORM);
 
-            ObjectMapper mapper = new ObjectMapper();
-            String s;
-
-            try {
-                s = mapper.writeValueAsString(cells);
-                answer.setContent(s);
-
-//                System.out.println(SimulatorAgent.ANSI_PURPLE +
-//                        "Msg of " + getLocalName() + " sent to " + ((AID) answer.getAllReceiver().next()).getLocalName() +
-//                        ": " + answer.getContent() + SimulatorAgent.ANSI_RESET);
-
-                send(answer);
-            } catch (JsonProcessingException ex) {
-                ex.printStackTrace();
-            }
-
+            EnvironmentAgent.serializeCellsToMessage(cells, answer);
+            send(answer);
         }
-
 
 
         /**
@@ -167,34 +147,12 @@ public class AnalyzerAgent extends Agent {
             try {
                 cells = mapper.readValue(s, Cell[].class);
 
-//                System.out.println(SimulatorAgent.ANSI_YELLOW + getLocalName() + " received: " + s + SimulatorAgent.ANSI_RESET);
-
-//                List<Integer> valuesToFind = SudokuGrid.getValuesToFindFromCells(cells);
-//                Integer[] values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-//                List<Integer> valuesToFind = new LinkedList<>(Arrays.asList(values));
-//                List<Integer> knownValues = new LinkedList<>();
-//                for (Cell cell : cells) {
-//                    if (cell.getContent() != 0)
-//                        knownValues.add(cell.getContent());
-//                }
-//
-//                valuesToFind.removeAll(knownValues);
-
-//                System.out.println(SimulatorAgent.ANSI_CYAN + "values to find : " + valuesToFind + SimulatorAgent.ANSI_RESET);
-//                System.out.println(SimulatorAgent.ANSI_CYAN + "known values : " + knownValues + SimulatorAgent.ANSI_RESET);
-
-
-
-//                    System.out.println(SimulatorAgent.ANSI_CYAN + getLocalName() + " received cell: " + cell.getContent() + ", " + cell.getPossibilities() + SimulatorAgent.ANSI_RESET);
-
-
                 analysis4(cells);
                 analysis2(cells);
                 analysis3(cells);
                 for (Cell cell : cells) {
                     analysis1(cell);
                 }
-
 
                 answer(cells, message);
 
@@ -218,7 +176,6 @@ public class AnalyzerAgent extends Agent {
     }
 
     protected void setup() {
-        System.out.println("Agent created ! Name : " + getLocalName());
         addBehaviour(new SubscribeBehaviour());
     }
 

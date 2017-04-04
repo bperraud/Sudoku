@@ -11,6 +11,28 @@ class SudokuGrid {
                 cells[i][j] = new Cell();
     }
 
+    Cell[] getCells() {
+        Cell[] allCells = new Cell[81];
+        for (int i = 0; i < 9; i++) {
+            Cell[] line = getLine(i);
+            System.arraycopy(line, 0, allCells, i * 9, 9);
+        }
+        return allCells;
+    }
+
+    int[] getCellPosition(Cell cell) {
+        List<Cell[]> asList = Arrays.asList(cells);
+        int[] position = {-1, -1};
+        for (int i = 0; i < asList.size(); i++) {
+            Cell[] line = asList.get(i);
+            if ((position[1] = Arrays.asList(line).indexOf(cell)) != -1) {
+                position[0] = i;
+                break;
+            }
+        }
+        return position;
+    }
+
     Cell[] getLine(int index) {
         return cells[index];
     }
@@ -64,7 +86,7 @@ class SudokuGrid {
         }
 
         for (i = 0; i < 9; i++) {
-        Cell[] cellsLine = getLine(i);
+            Cell[] cellsLine = getLine(i);
             for (int j = 0; j < cellsLine.length; j++) {
                 Cell cell = cellsLine[j];
                 if (values[i * 9 + j] == 0) {
@@ -84,7 +106,7 @@ class SudokuGrid {
 
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
-            cells[i][j].setContent(values[i][j]);
+                cells[i][j].setContent(values[i][j]);
             }
         }
     }
@@ -121,30 +143,35 @@ class SudokuGrid {
     }
 
     void printGrid() {
-        synchronized (System.out) {
-            System.out.println("-------------------");
+        printGrid(null);
+    }
 
-            for (int i = 0; i < 9; i++) {
+    void printGrid(int[] newCellPosition) {
+        System.out.println("-------------------");
 
-                System.out.print("|");
+        for (int i = 0; i < 9; i++) {
 
-                for (int j = 0; j < 9; j++) {
+            System.out.print("|");
 
-                    Cell cell = cells[i][j];
+            for (int j = 0; j < 9; j++) {
 
+                Cell cell = cells[i][j];
+
+                if (newCellPosition != null && newCellPosition[0] == i && newCellPosition[1] == j)
+                    System.out.print(SimulatorAgent.ANSI_GREEN + cell.getContent() + SimulatorAgent.ANSI_RESET);
+                else
                     System.out.print(cell.getContent());
 
-                    if (j % 3 == 2)
-                        System.out.print("|");
-                    else
-                        System.out.print(" ");
-                }
-
-                if (i % 3 == 2)
-                    System.out.println("\n-------------------");
+                if (j % 3 == 2)
+                    System.out.print("|");
                 else
-                    System.out.println();
+                    System.out.print(" ");
             }
+
+            if (i % 3 == 2)
+                System.out.println("\n-------------------");
+            else
+                System.out.println();
         }
     }
 
