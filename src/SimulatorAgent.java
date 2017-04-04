@@ -1,7 +1,9 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.*;
@@ -33,8 +35,6 @@ public class SimulatorAgent extends Agent {
     static int ANALYZERS_PER_TYPE = 9;
     private int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * NB_TYPES;
 
-    private String inlineSudoku = "";
-
     private ClockBehaviour clockBehaviour = null;
 
     private class HandleSimulationBehaviour extends SequentialBehaviour {
@@ -56,17 +56,15 @@ public class SimulatorAgent extends Agent {
                 sudokuIsSolved = true;
                 clockBehaviour.stop();
 
-                Scanner sc = new Scanner(informMessage.getContent());
-                int[] values = new int[81];
-                int i = 0;
+                String s = informMessage.getContent();
+                ObjectMapper mapper = new ObjectMapper();
 
-                while (sc.hasNext()) {
-                    values[i++] = Integer.parseInt(sc.next());
+                try {
+                    SudokuGrid sudokuGrid = mapper.readValue(s, SudokuGrid.class);
+                    sudokuGrid.printGrid();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
-
-                SudokuGrid finishedGrid = new SudokuGrid();
-                finishedGrid.setCells(values);
-                finishedGrid.printGrid();
 
             } else
                 block();
@@ -131,9 +129,15 @@ public class SimulatorAgent extends Agent {
 
     class InitSimulationBehaviour extends OneShotBehaviour {
 
+        SudokuGrid sudokuGrid;
+
+        InitSimulationBehaviour(SudokuGrid sudokuGrid) {
+            this.sudokuGrid = sudokuGrid;
+        }
+
         private void sendSudokuGrid() {
             ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-            message.setContent(inlineSudoku);
+            message.setContent(SudokuMain.serializeToJson(sudokuGrid));
             AID receiver = getAID("Environment");
             message.addReceiver(receiver);
             send(message);
@@ -153,25 +157,33 @@ public class SimulatorAgent extends Agent {
         }
     }
 
-    private void storeInlineSudoku(File sudoku) {
+    private SudokuGrid createSudokuGrid(File sudoku) {
+        SudokuGrid sudokuGrid = new SudokuGrid();
+
         try {
             Scanner sc = new Scanner(sudoku);
-            StringBuilder sb = new StringBuilder();
+            int[] values = new int[81];
+            int i = 0;
 
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                sb.append(line).append(" ");
+            while (sc.hasNext()) {
+                values[i++] = Integer.parseInt(sc.next());
             }
 
-            inlineSudoku = sb.toString();
+            sudokuGrid.setCells(values);
+            sudokuGrid.initPossibilities(values);
+
+            System.out.println("Initial grid :");
+            sudokuGrid.printGrid();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
+        return sudokuGrid;
     }
 
     protected void setup() {
-        storeInlineSudoku((File) getArguments()[0]);
+        SudokuGrid sudokuGrid = createSudokuGrid((File) getArguments()[0]);
 
         analyzers = new AID[NB_TYPES][ANALYZERS_PER_TYPE];
 
@@ -182,7 +194,7 @@ public class SimulatorAgent extends Agent {
 
         HandleSimulationBehaviour seq = new HandleSimulationBehaviour();
         seq.addSubBehaviour(new WaitForSubscriptionBehaviour());
-        seq.addSubBehaviour(new InitSimulationBehaviour());
+        seq.addSubBehaviour(new InitSimulationBehaviour(sudokuGrid));
         seq.addSubBehaviour(new TerminateSimulationBehaviour());
         addBehaviour(seq);
     }

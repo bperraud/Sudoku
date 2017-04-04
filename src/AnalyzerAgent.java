@@ -31,7 +31,7 @@ public class AnalyzerAgent extends Agent {
             ACLMessage answer = message.createReply();
             answer.setPerformative(ACLMessage.INFORM);
 
-            EnvironmentAgent.serializeCellsToMessage(cells, answer);
+            answer.setContent(SudokuMain.serializeToJson(cells));
             send(answer);
         }
 

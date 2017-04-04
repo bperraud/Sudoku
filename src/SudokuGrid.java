@@ -1,23 +1,21 @@
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.*;
 
 class SudokuGrid {
 
+    @JsonProperty("cells")
     private Cell[][] cells;
+
+    private SudokuGrid(@JsonProperty("cells") Cell[][] cells) {
+        this.cells = cells;
+    }
 
     SudokuGrid() {
         cells = new Cell[9][9];
         for (int i = 0; i < 9; i++)
             for (int j = 0; j < 9; j++)
                 cells[i][j] = new Cell();
-    }
-
-    Cell[] getCells() {
-        Cell[] allCells = new Cell[81];
-        for (int i = 0; i < 9; i++) {
-            Cell[] line = getLine(i);
-            System.arraycopy(line, 0, allCells, i * 9, 9);
-        }
-        return allCells;
     }
 
     int[] getCellPosition(Cell cell) {
@@ -71,14 +69,6 @@ class SudokuGrid {
     }
 
     void initPossibilities(int[] values) {
-
-//        System.out.println("initPossibilities");
-//        for (int i = 0; i < values.length; i++) {
-//            int value = values[i];
-//            System.out.println("v " + i + " : " + value);
-//        }
-
-
         int i;
         Set<Integer> maxPossibilities = new HashSet<>();
         for (i = 1; i <= 9; i++) {
@@ -90,23 +80,8 @@ class SudokuGrid {
             for (int j = 0; j < cellsLine.length; j++) {
                 Cell cell = cellsLine[j];
                 if (values[i * 9 + j] == 0) {
-//                    System.out.println("setPossibility!!!");
-//                    System.out.println(cell.getIndex());
-
                     cell.setPossibilities(maxPossibilities);
                 }
-            }
-        }
-
-    }
-
-    void setCells(int[][] values) {
-        if (values.length != 9 || values[0].length != 9)
-            return;
-
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                cells[i][j].setContent(values[i][j]);
             }
         }
     }
@@ -120,26 +95,6 @@ class SudokuGrid {
                 cells[i][j].setContent(values[i * 9 + j]);
             }
         }
-    }
-
-    void setLine(int index, int[] values) {
-        if (values.length != 9)
-            return;
-
-        for (int j = 0; j < 9; j++)
-            cells[index][j].setContent(values[j]);
-    }
-
-    void setColumn(int index, int[] values) {
-        if (values.length != 3)
-            return;
-
-        for (int i = 0; i < 3; i++)
-            cells[i][index].setContent(values[i]);
-    }
-
-    void setCell(int line, int column, int val) {
-        cells[line][column].setContent(val);
     }
 
     void printGrid() {

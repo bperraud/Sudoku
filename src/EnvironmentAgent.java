@@ -1,10 +1,7 @@
 import java.io.IOException;
 import java.util.*;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
@@ -13,8 +10,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class EnvironmentAgent extends Agent {
 
-    private SudokuGrid sudokuGrid = new SudokuGrid();
-    private boolean gridIsInitialized = false;
+    private SudokuGrid sudokuGrid = null;
 
     private Map<AID, Integer> agentsRolesMap = new HashMap<>();
 
@@ -36,17 +32,6 @@ public class EnvironmentAgent extends Agent {
         return cells;
     }
 
-    static void serializeCellsToMessage(Cell[] cells, ACLMessage message) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-            String s = mapper.writeValueAsString(cells);
-            message.setContent(s);
-        } catch (JsonProcessingException ex) {
-            ex.printStackTrace();
-        }
-    }
-
     class handleRequestsBehaviour extends Behaviour {
 
         private void propagateRequest(ACLMessage message, int agentCode) {
@@ -63,7 +48,7 @@ public class EnvironmentAgent extends Agent {
             newMessage.addReceiver(receiver);
             agentsRolesMap.put(receiver, agentCode);
 
-            serializeCellsToMessage(cells, newMessage);
+            newMessage.setContent(SudokuMain.serializeToJson(cells));
             send(newMessage);
         }
 
@@ -89,25 +74,13 @@ public class EnvironmentAgent extends Agent {
 
         private void sendCompletedSudokuGrid() {
             ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-            String inlineGrid;
-
-            StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < 9; i++) {
-                for (Cell cell : sudokuGrid.getLine(i)) {
-                    sb.append(cell.getContent()).append(" ");
-                }
-            }
-
-            inlineGrid = sb.toString();
-
-            message.setContent(inlineGrid);
+            message.setContent(SudokuMain.serializeToJson(sudokuGrid));
             AID receiver = getAID("Simulator");
             message.addReceiver(receiver);
             send(message);
         }
 
-        private void updateCells(Cell[] currentCells, Cell[] newCells, int type, int index) {
+        private void updateCells(Cell[] currentCells, Cell[] newCells) {
 
             for (int i = 0; i < 9; i++) {
                 Cell currentCell = currentCells[i];
@@ -118,13 +91,12 @@ public class EnvironmentAgent extends Agent {
                     continue;
 
                 if (newCell.getContent() != 0) {
+                    System.out.println("Next step :");
                     currentCell.setContent(newCell.getContent());
                     currentCell.getPossibilities().clear();
-
-                    System.out.println("Next step :");
                     sudokuGrid.printGrid(sudokuGrid.getCellPosition(currentCell));
                 } else {
-                    currentCell.updatePossibilities(newCell.getPossibilities(), type, index);
+                    currentCell.updatePossibilities(newCell.getPossibilities());
                 }
             }
 
@@ -139,14 +111,8 @@ public class EnvironmentAgent extends Agent {
             try {
                 newCells = mapper.readValue(s, Cell[].class);
 
-                int agentCode = agentsRolesMap.get(message.getSender());
-                int type = agentCode / SimulatorAgent.ANALYZERS_PER_TYPE;
-                int index = agentCode % SimulatorAgent.ANALYZERS_PER_TYPE;
-
-                Cell[] currentCells = getCellsByAgentCode(agentCode);
-
-                updateCells(currentCells, newCells, type, index);
-
+                Cell[] currentCells = getCellsByAgentCode(agentsRolesMap.get(message.getSender()));
+                updateCells(currentCells, newCells);
 
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -175,21 +141,15 @@ public class EnvironmentAgent extends Agent {
 
     class InitSudokuGridBehaviour extends Behaviour {
 
-        private void initGrid(String inlineSudoku) {
-            Scanner sc = new Scanner(inlineSudoku);
-            int[] values = new int[81];
-            int i = 0;
+        private void initGrid(ACLMessage message) {
+            String s = message.getContent();
+            ObjectMapper mapper = new ObjectMapper();
 
-            while (sc.hasNext()) {
-                values[i++] = Integer.parseInt(sc.next());
+            try {
+                sudokuGrid = mapper.readValue(s, SudokuGrid.class);
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
-
-            sudokuGrid.setCells(values);
-            sudokuGrid.initPossibilities(values);
-            gridIsInitialized = true;
-
-            System.out.println("Initial grid :");
-            sudokuGrid.printGrid();
         }
 
         @Override
@@ -199,7 +159,7 @@ public class EnvironmentAgent extends Agent {
 
             if (requestMessage != null) {
 
-                initGrid(requestMessage.getContent());
+                initGrid(requestMessage);
 
                 addBehaviour(new handleRequestsBehaviour());
                 addBehaviour(new handleAnswersBehaviour());
@@ -210,7 +170,7 @@ public class EnvironmentAgent extends Agent {
 
         @Override
         public boolean done() {
-            return gridIsInitialized;
+            return sudokuGrid != null;
         }
     }
 
