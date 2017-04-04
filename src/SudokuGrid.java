@@ -110,12 +110,17 @@ class SudokuGrid {
 
             for (int j = 0; j < 9; j++) {
 
-                Cell cell = cells[i][j];
+                int cellVal = cells[i][j].getContent();
+                String s;
 
                 if (newCellPosition != null && newCellPosition[0] == i && newCellPosition[1] == j)
-                    System.out.print(SimulatorAgent.ANSI_GREEN + cell.getContent() + SimulatorAgent.ANSI_RESET);
+                    s = SimulatorAgent.ANSI_GREEN + cellVal + SimulatorAgent.ANSI_RESET;
+                else if (cellVal == 0)
+                    s = SimulatorAgent.ANSI_BLUE + cellVal + SimulatorAgent.ANSI_RESET;
                 else
-                    System.out.print(cell.getContent());
+                    s = String.valueOf(cellVal);
+
+                System.out.print(s);
 
                 if (j % 3 == 2)
                     System.out.print("|");
