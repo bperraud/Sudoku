@@ -165,8 +165,15 @@ public class SimulatorAgent extends Agent {
             int[] values = new int[81];
             int i = 0;
 
-            while (sc.hasNext()) {
-                values[i++] = Integer.parseInt(sc.next());
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                if (line.startsWith("//"))
+                    continue;
+
+                Scanner lineScanner = new Scanner(line);
+                while (lineScanner.hasNext()) {
+                values[i++] = Integer.parseInt(lineScanner.next());
+                }
             }
 
             sudokuGrid.setCells(values);
