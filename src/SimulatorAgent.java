@@ -36,6 +36,11 @@ public class SimulatorAgent extends Agent {
     static final int ANALYZERS_PER_TYPE = 9;
     private final int SUBSCRIBERS_WANTED = ANALYZERS_PER_TYPE * NB_TYPES;
 
+    /**
+     * The reference to the clock behaviour is stored, so we can stop it when the Sudoku grid is solved
+     *
+     * @see TerminateSimulationBehaviour#action()
+     */
     private ClockBehaviour clockBehaviour = null;
 
     private class HandleSimulationBehaviour extends SequentialBehaviour {
@@ -168,12 +173,12 @@ public class SimulatorAgent extends Agent {
 
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
-                if (line.startsWith("//"))
+                if (line.startsWith("//")) // We skip commented lines for convenient purpose
                     continue;
 
                 Scanner lineScanner = new Scanner(line);
                 while (lineScanner.hasNext()) {
-                values[i++] = Integer.parseInt(lineScanner.next());
+                    values[i++] = Integer.parseInt(lineScanner.next());
                 }
             }
 

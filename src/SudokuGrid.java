@@ -2,6 +2,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.*;
 
+/**
+ * The SudokuGrid encapsulates the gris to solve
+ * cells is a bi-dimensional array of references to the 81 cells of the grid
+ */
 class SudokuGrid {
 
     @JsonProperty("cells")

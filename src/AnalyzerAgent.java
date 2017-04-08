@@ -11,6 +11,9 @@ import java.util.*;
 
 public class AnalyzerAgent extends Agent {
 
+    /**
+     * Subscribes the agent to the Simulator
+     */
     class SubscribeBehaviour extends OneShotBehaviour {
 
         @Override
@@ -25,6 +28,9 @@ public class AnalyzerAgent extends Agent {
         }
     }
 
+    /**
+     * Handle the analyses required to solve the grid
+     */
     class AnalyzeBehaviour extends CyclicBehaviour {
 
         private void answer(Cell[] cells, ACLMessage message) {
@@ -37,8 +43,8 @@ public class AnalyzerAgent extends Agent {
 
 
         /**
-         * Lorsqu'une cellule n'a plus qu'une valeur possible, celle-ci en devient son
-         * contenu et la liste des possibles est vidée.
+         * Whenever a cell hasn't any possible value but one, this one is set as the cell's content
+         * and the cell possibilities are cleared
          *
          * @param cell the cell to analyze
          */
@@ -51,8 +57,7 @@ public class AnalyzerAgent extends Agent {
         }
 
         /**
-         * Si une cellule a un contenu déterminé alors il doit être retiré des possibles de
-         * toutes les autres cellules non déterminées.
+         * Whenever a cell's content is known, it must be removed from any other non-determined cell's possibilities list
          *
          * @param cells the cells to analyze
          */
@@ -73,8 +78,7 @@ public class AnalyzerAgent extends Agent {
         }
 
         /**
-         * Une valeur ne se trouvant que dans une seule liste de possibles est la valeur
-         * de cette cellule.
+         * Whenever a value only exists in one cell's possibilities list, it must be set as this cell's content
          *
          * @param cells the cells to analyze
          */
@@ -100,8 +104,8 @@ public class AnalyzerAgent extends Agent {
         }
 
         /**
-         * Si seulement deux cellules contiennent les deux mêmes valeurs possibles
-         * alors les possibles des autres cellules ne peuvent contenir ces valeurs.
+         * Whenever only two cells have the same two possible values, the other cells' possibilities lists can't contain
+         * these values
          *
          * @param cells the cells to analyze
          */
@@ -136,7 +140,6 @@ public class AnalyzerAgent extends Agent {
 
 
         }
-
 
         private void runAnalysis(ACLMessage message) {
 

@@ -14,6 +14,13 @@ public class EnvironmentAgent extends Agent {
 
     private final Map<AID, Integer> agentsRolesMap = new HashMap<>();
 
+    /**
+     * Allows to retrieve the cells from a given structure (line|column|square) identified by a given agentCode
+     *
+     * @param agentCode encoded according the following formula: agentCode:= type * nb_analysers_per_type + index
+     * @return the cells of the n-line|column|square; in the case of the square structure, the cells are ordered
+     * from left to right and row-by-row
+     */
     private Cell[] getCellsByAgentCode(int agentCode) {
         Cell[] cells = new Cell[9];
         int type = agentCode / SimulatorAgent.ANALYZERS_PER_TYPE;

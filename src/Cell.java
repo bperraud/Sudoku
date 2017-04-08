@@ -3,7 +3,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A cell is a Sudoku grid brick, with a content and a list of possibilities
+ */
 class Cell {
+    /**
+     * content : the value of the cell (0 if not determined yet)
+     * possiblities : the possible values for the cell (empty if its content is set)
+     */
     @JsonProperty("content")
     private int content;
     @JsonProperty("possibilities")
